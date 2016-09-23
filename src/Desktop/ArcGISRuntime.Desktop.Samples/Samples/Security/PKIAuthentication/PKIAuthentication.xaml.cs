@@ -24,7 +24,7 @@ namespace PKIAuthentication
     public partial class MainWindow : Window
     {
         //TODO - Add the URL for your PKI-secured portal
-        const string SecuredPortalUrl = ""; 
+        const string SecuredPortalUrl = "https://portalpkiqa.ags.esri.com/gis/sharing"; 
 
         //TODO - Add the URL for a portal containing public content (ArcGIS Organization, e.g.)
         const string PublicPortalUrl = "http://esrihax.maps.arcgis.com/sharing/rest";
@@ -153,7 +153,7 @@ namespace PKIAuthentication
                 var items = await currentPortal.SearchItemsAsync(new SearchParameters("type:(\"web map\" NOT \"web mapping application\")"));
 
                 // Build a list of items from the results that shows the map name and stores the item ID (with the Tag property)
-                var resultItems = from r in items.Results select new ListBoxItem { Tag = r.Id, Content = r.Title };
+                var resultItems = from r in items.Results select new ListBoxItem { Tag = r.ItemId, Content = r.Title };
 
                 // Add the list items
                 foreach (var itm in resultItems)
@@ -207,7 +207,7 @@ namespace PKIAuthentication
                 var itemId = (MapItemListBox.SelectedItem as ListBoxItem).Tag.ToString();
 
                 // Use the item ID to create an ArcGISPortalItem from the appropriate portal 
-                var portalItem = await ArcGISPortalItem.CreateAsync(portal, itemId);
+                var portalItem = await PortalItem.CreateAsync(portal, itemId);
 
                 // Create a Map from the portal item (all items in the list represent web maps)
                 var webMap = new Map(portalItem);

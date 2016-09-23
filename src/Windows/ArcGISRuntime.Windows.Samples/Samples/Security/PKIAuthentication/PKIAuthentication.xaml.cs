@@ -156,7 +156,7 @@ namespace PKIAuthentication
                 var items = await _publicPortal.SearchItemsAsync(new SearchParameters("type:(\"web map\" NOT \"web mapping application\")"));
 
                 // Build a list of items from the results that shows the map name and stores the item ID (with the Tag property)
-                var resultItems = from r in items.Results select new ListBoxItem { Tag = r.Id, Content = r.Title };
+                var resultItems = from r in items.Results select new ListBoxItem { Tag = r.ItemId, Content = r.Title };
 
                 // Add the list items
                 foreach (var itm in resultItems)
@@ -216,7 +216,7 @@ namespace PKIAuthentication
                 var items = await _pkiSecuredPortal.SearchItemsAsync(new SearchParameters("type:(\"web map\" NOT \"web mapping application\")"));
 
                 // Build a list of items from the results that shows the map name and stores the item ID (with the Tag property)
-                var resultItems = from r in items.Results select new ListBoxItem { Tag = r.Id, Content = r.Title };
+                var resultItems = from r in items.Results select new ListBoxItem { Tag = r.ItemId, Content = r.Title };
 
                 // Add the list items
                 foreach (var itm in resultItems)
@@ -273,7 +273,7 @@ namespace PKIAuthentication
                 var itemId = (MapItemListBox.SelectedItem as ListBoxItem).Tag.ToString();
 
                 // Use the item ID to create an ArcGISPortalItem from the appropriate portal 
-                var portalItem = await ArcGISPortalItem.CreateAsync(portal, itemId);
+                var portalItem = await PortalItem.CreateAsync(portal, itemId);
 
                 // Create a WebMap from the portal item (all items in the list represent web maps)
                 var webMap = new Map(portalItem);
