@@ -9,9 +9,11 @@
 
 using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Portal;
+using Esri.ArcGISRuntime.Security;
 using System;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Windows.Security.Cryptography.Certificates;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -21,12 +23,14 @@ using Windows.UI.Xaml.Controls;
 
 namespace PKIAuthentication
 {
+    // Important:
+    //    You must add the "Private Networks" capability to use Public Key Infrastructure (PKI) authentication
+    //    in your UWP project. Add this capability by checking "Private Networks (Client and Server)"
+    //    in your project's Package.appxmanifest file.
     public sealed partial class MainPage : Page
     {
-        //TODO - Create a client certificate (*.pfx) and add it to a folder accessible to the app
-
         //TODO - Add the URL for your PKI-secured portal
-        const string SecuredPortalUrl = "https://my.secure.server.com/sharing/rest";
+        const string SecuredPortalUrl = "https://portalpkiqa.ags.esri.com/sharing/rest";
 
         //TODO - Add the URL for a portal containing public content (ArcGIS Organization, e.g.)
         const string PublicPortalUrl = "http://esrihax.maps.arcgis.com/sharing/rest";
@@ -47,173 +51,149 @@ namespace PKIAuthentication
         public MainPage()
         {
             InitializeComponent();
-        }
+        }        
 
-        private async void ChooseCertificateFile(object sender, RoutedEventArgs e)
-        {
-            // Create a file picker dialog so the user can select an exported certificate (*.pfx)
-            var pfxFilePicker = new FileOpenPicker();
-            pfxFilePicker.FileTypeFilter.Add(".pfx");
-            pfxFilePicker.CommitButtonText = "Open";
+        //private async void ChooseCertificateFile(object sender, RoutedEventArgs e)
+        //{
+        //    // Create a file picker dialog so the user can select an exported certificate (*.pfx)
+        //    var pfxFilePicker = new FileOpenPicker();
+        //    pfxFilePicker.FileTypeFilter.Add(".pfx");
+        //    pfxFilePicker.CommitButtonText = "Open";
 
-            // Show the dialog and get the selected file (if any)
-            StorageFile pfxFile = await pfxFilePicker.PickSingleFileAsync();
-            if (pfxFile != null)
-            {
-                // Use the file's display name for the certificate name
-                _certificateName = pfxFile.DisplayName;
+        //    // Show the dialog and get the selected file (if any)
+        //    StorageFile pfxFile = await pfxFilePicker.PickSingleFileAsync();
+        //    if (pfxFile != null)
+        //    {
+        //        // Use the file's display name for the certificate name
+        //        _certificateName = pfxFile.DisplayName;
 
-                // Read the contents of the file
-                IBuffer buffer = await FileIO.ReadBufferAsync(pfxFile);
-                using (DataReader dataReader = DataReader.FromBuffer(buffer))
-                {
-                    // Store the contents of the file as an encrypted string
-                    // The string will be imported as a certificate when the user enters the password
-                    byte[] bytes = new byte[buffer.Length];
-                    dataReader.ReadBytes(bytes);
-                    _certificateString = Convert.ToBase64String(bytes);
-                }
+        //        // Read the contents of the file
+        //        IBuffer buffer = await FileIO.ReadBufferAsync(pfxFile);
+        //        using (DataReader dataReader = DataReader.FromBuffer(buffer))
+        //        {
+        //            // Store the contents of the file as an encrypted string
+        //            // The string will be imported as a certificate when the user enters the password
+        //            byte[] bytes = new byte[buffer.Length];
+        //            dataReader.ReadBytes(bytes);
+        //            _certificateString = Convert.ToBase64String(bytes);
+        //        }
 
-                // Show the certificate password box (and hide the map search controls)
-                LoginPanel.Visibility = Visibility.Visible;
-                LoadMapPanel.Visibility = Visibility.Collapsed;
-            }
-        }
+        //        // Show the certificate password box (and hide the map search controls)
+        //        LoginPanel.Visibility = Visibility.Visible;
+        //        LoadMapPanel.Visibility = Visibility.Collapsed;
+        //    }
+        //}
 
         // Load a client certificate for accessing a PKI-secured server 
-        private async void LoadClientCertButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Show the progress bar and a message
-            ProgressStatus.Visibility = Visibility.Visible;
-            MessagesTextBlock.Text = "Loading certificate ...";
+        //private async void LoadClientCertButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    // Show the progress bar and a message
+        //    ProgressStatus.Visibility = Visibility.Visible;
+        //    MessagesTextBlock.Text = "Loading certificate ...";
 
-            try
-            {                
-                // Import the certificate by providing: 
-                // -the encoded certificate string, 
-                // -the password (entered by the user)
-                // -certificate options (export, key protection, install)
-                // -a friendly name (the name of the pfx file)
-                await CertificateEnrollmentManager.ImportPfxDataAsync(
-                    _certificateString,
-                    CertPasswordBox.Password,
-                    ExportOption.Exportable,
-                    KeyProtectionLevel.NoConsent,
-                    InstallOptions.None,
-                    _certificateName);
+        //    try
+        //    {                
+        //        // Import the certificate by providing: 
+        //        // -the encoded certificate string, 
+        //        // -the password (entered by the user)
+        //        // -certificate options (export, key protection, install)
+        //        // -a friendly name (the name of the pfx file)
+        //        await CertificateEnrollmentManager.ImportPfxDataAsync(
+        //            _certificateString,
+        //            CertPasswordBox.Password,
+        //            ExportOption.Exportable,
+        //            KeyProtectionLevel.NoConsent,
+        //            InstallOptions.None,
+        //            _certificateName);
 
-                // Report success
-                MessagesTextBlock.Text = "Client certificate (" + _certificateName + ") was successfully imported";
-            }
-            catch (Exception ex)
-            {
-                // Report error
-                MessagesTextBlock.Text = "Error loading certificate: " + ex.Message;
-            }
-            finally
-            {
-                // Hide progress bar and the password controls
-                ProgressStatus.Visibility = Visibility.Collapsed;
-                HideCertLogin(null, null);
-            }
-        }
+        //        // Report success
+        //        MessagesTextBlock.Text = "Client certificate (" + _certificateName + ") was successfully imported";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Report error
+        //        MessagesTextBlock.Text = "Error loading certificate: " + ex.Message;
+        //    }
+        //    finally
+        //    {
+        //        // Hide progress bar and the password controls
+        //        ProgressStatus.Visibility = Visibility.Collapsed;
+        //        HideCertLogin(null, null);
+        //    }
+        //}
 
         // Search the public portal for web maps and display the results in a list box.
         private async void SearchPublicMapsButton_Click(object sender, RoutedEventArgs e)
         {
-            // Set the flag variable to indicate the search is from the public portal
-            // (if the user wants to load a map, will need the portal it came from)
+            // Set the flag variable to indicate this is the public portal
+            // (if the user wants to load a map, will need to know which portal it came from)
             _usingPublicPortal = true;
-
-            MapItemListBox.Items.Clear();
-
-            // Show status message and the status bar
-            MessagesTextBlock.Text = "Searching for web map items on the public portal.";
-            ProgressStatus.Visibility = Visibility.Visible;
-            var messageBuilder = new StringBuilder();
 
             try
             {
                 // Create an instance of the public portal
                 _publicPortal = await ArcGISPortal.CreateAsync(new Uri(PublicPortalUrl));
 
-                // Report a successful connection
-                messageBuilder.AppendLine("Connected to the portal on " + _publicPortal.Uri.Host);
-                messageBuilder.AppendLine("Version: " + _publicPortal.CurrentVersion);
-
-                // Report the user name used for this connection
-                if (_publicPortal.CurrentUser != null)
-                {
-                    messageBuilder.AppendLine("Connected as: " + _publicPortal.CurrentUser.UserName);
-                }
-                else
-                {
-                    // Connected anonymously
-                    messageBuilder.AppendLine("Anonymous");
-                }
-
-                // Search the public portal for web maps
-                var items = await _publicPortal.SearchItemsAsync(new SearchParameters("type:(\"web map\" NOT \"web mapping application\")"));
-
-                // Build a list of items from the results that shows the map name and stores the item ID (with the Tag property)
-                var resultItems = from r in items.Results select new ListBoxItem { Tag = r.ItemId, Content = r.Title };
-
-                // Add the list items
-                foreach (var itm in resultItems)
-                {
-                    MapItemListBox.Items.Add(itm);
-                }
+                // Call a function to search the portal
+                SearchPortal(_publicPortal);
             }
             catch (Exception ex)
             {
-                // Report errors connecting to or searching the public portal
-                messageBuilder.AppendLine(ex.Message);
-            }
-            finally
-            {
-                // Show messages, hide progress bar
-                MessagesTextBlock.Text = messageBuilder.ToString();
-                ProgressStatus.Visibility = Visibility.Collapsed;
+                // Report errors connecting to the secured portal
+                MessagesTextBlock.Text = ex.Message;
             }
         }
 
         // Search the PKI-secured portal for web maps and display the results in a list box.
         private async void SearchSecureMapsButton_Click(object sender, RoutedEventArgs e)
         {
-            // Set the flag variable to indicate the search is on the secure portal
-            // (if the user wants to load a map, will need the portal it came from)
+            // Set the flag variable to indicate this is the secure portal
+            // (if the user wants to load a map, will need to know which portal it came from)
             _usingPublicPortal = false;
 
+            try
+            {
+                // Create an instance of the PKI-secured portal
+                _pkiSecuredPortal = await ArcGISPortal.CreateAsync(new Uri(SecuredPortalUrl));
+
+                // Call a function to search the portal
+                SearchPortal(_pkiSecuredPortal);
+            }
+            catch (Exception ex)
+            {
+                // Report errors connecting to the secured portal
+                MessagesTextBlock.Text = ex.Message;
+            }
+        }
+        
+        private async void SearchPortal(ArcGISPortal currentPortal)
+        {
             MapItemListBox.Items.Clear();
 
             // Show status message and the status bar
-            MessagesTextBlock.Text = "Searching for web map items on the secure portal.";
+            MessagesTextBlock.Text = "Searching for web map items on the portal at " + currentPortal.Uri.AbsoluteUri;
             ProgressStatus.Visibility = Visibility.Visible;
             var messageBuilder = new StringBuilder();
 
             try
             {
-                // Create an instance of the PKI-secured portal
-                // Note: if the "Private Networks" capability is not added to package.appxmanifest, you may get an exception here
-                _pkiSecuredPortal = await ArcGISPortal.CreateAsync(new Uri(SecuredPortalUrl));
-
-                // Report a successful connection
-                messageBuilder.AppendLine("Connected to the portal on " + _pkiSecuredPortal.Uri.Host);
-                messageBuilder.AppendLine("Version: " + _pkiSecuredPortal.CurrentVersion);
+                // Report connection info
+                messageBuilder.AppendLine("Connected to the portal on " + currentPortal.Uri.Host);
+                messageBuilder.AppendLine("Version: " + currentPortal.CurrentVersion);
 
                 // Report the user name used for this connection
-                if (_pkiSecuredPortal.CurrentUser != null)
+                if (currentPortal.CurrentUser != null)
                 {
-                    messageBuilder.AppendLine("Connected as: " + _pkiSecuredPortal.CurrentUser.UserName);
+                    messageBuilder.AppendLine("Connected as: " + currentPortal.CurrentUser.UserName);
                 }
                 else
                 {
-                    // (this shouldn't happen)
+                    // (this shouldn't happen for a secure portal)
                     messageBuilder.AppendLine("Anonymous");
                 }
 
-                // Search the secured portal for web maps
-                var items = await _pkiSecuredPortal.SearchItemsAsync(new SearchParameters("type:(\"web map\" NOT \"web mapping application\")"));
+                // Search the portal for web maps
+                var items = await currentPortal.SearchItemsAsync(new SearchParameters("type:(\"web map\" NOT \"web mapping application\")"));
 
                 // Build a list of items from the results that shows the map name and stores the item ID (with the Tag property)
                 var resultItems = from r in items.Results select new ListBoxItem { Tag = r.ItemId, Content = r.Title };
@@ -226,12 +206,8 @@ namespace PKIAuthentication
             }
             catch (Exception ex)
             {
-                // Report errors connecting to or searching the secured portal
+                // Report errors searching the portal
                 messageBuilder.AppendLine(ex.Message);
-                if (ex.InnerException != null)
-                {
-                    messageBuilder.AppendLine("--" + ex.InnerException.Message);
-                }
             }
             finally
             {
@@ -296,11 +272,11 @@ namespace PKIAuthentication
             }
         }
 
-        private void HideCertLogin(object sender, RoutedEventArgs e)
-        {
-            // Hide the certificate password box (and show the map search controls)
-            LoginPanel.Visibility = Visibility.Collapsed;
-            LoadMapPanel.Visibility = Visibility.Visible;
-        }
+        //private void HideCertLogin(object sender, RoutedEventArgs e)
+        //{
+        //    // Hide the certificate password box (and show the map search controls)
+        //    LoginPanel.Visibility = Visibility.Collapsed;
+        //    LoadMapPanel.Visibility = Visibility.Visible;
+        //}
     }
 }

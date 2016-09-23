@@ -12,7 +12,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <!--Login UI: shown when challenged for access to a PKI-secured portal-->
+        <!--Login UI: shown when challenged for access to a PKI-secured portal
         <Border x:Name="LoginPanel"
                 Grid.Row="0" Grid.Column="0"
                 Visibility="Collapsed"
@@ -47,7 +47,7 @@
                             Click="LoadClientCertButton_Click"/>
                 </StackPanel>
             </Grid>
-        </Border>
+        </Border>-->
 
         <!-- Search web maps UI-->
         <Border x:Name="LoadMapPanel" 
@@ -62,12 +62,12 @@
                     <RowDefinition Height="50"/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <Button x:Name="LoadClientCertButton" 
+                <!--<Button x:Name="LoadClientCertButton" 
                         Grid.Row="0" 
                         Content="Load Client Certificate"
                         HorizontalAlignment="Center" VerticalAlignment="Center"						 
 						Width="265" Height="45"
-						Click="ChooseCertificateFile"/>
+						Click="ChooseCertificateFile"/>-->
                 <Button x:Name="SearchPublicMapsButton" 
 						Grid.Row="1"
                         Content="Search Public Maps"														
